@@ -1,1 +1,3 @@
-alert("123");
+var el = document.querySelector('.other-project-text');
+
+el.click();
