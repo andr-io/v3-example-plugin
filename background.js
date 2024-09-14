@@ -1,13 +1,31 @@
-chrome.action.onClicked.addListener(handler);
+chrome.action.onClicked.addListener(() => {
+    chrome.tabs.create({url: "https://wikipedia.org", active: false})
+});
 
-function handler(tab) {
-    chrome.tabs.create({url: "https://wikipedia.org"}, exec);
-}
+chrome.webNavigation.onCompleted.addListener(
+    details => {exec(details.tabId);}
+);
 
-function exec(tab) {  
-    chrome.scripting.executeScript({
-        target : {tabId : tab.id, allFrames : true},
-        files : ["foreground.js"]
-    });
+function exec(id) {
+    state[id] = state[id] || 0;
+
+    switch (state[id]) {
+        case 0:
+            state[id]++;
+            chrome.scripting.executeScript({
+                target : {tabId : id},
+                files : ["foreground.js"]
+            });
+            break;
     
+        case 1:
+            state[id]++;
+            chrome.scripting.executeScript({
+                target : {tabId : id},
+                files : ["alert.js"]
+            });
+            break;
+    }
 }
+
+let state = {};

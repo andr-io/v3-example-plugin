@@ -3,7 +3,7 @@
   "name": "Test",
   "version": "1.0",
 
-  "permissions": ["activeTab", "tabs", "scripting"],
+  "permissions": ["activeTab", "tabs", "scripting", "webNavigation"],
   "host_permissions": [
     "https://*/*"
   ],
