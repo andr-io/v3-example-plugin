@@ -1,17 +1,21 @@
 chrome.action.onClicked.addListener(() => {
-    chrome.tabs.create({url: "https://wikipedia.org", active: false})
+    chrome.tabs.create({url: "https://wikipedia.org", active: false}, tab => ownedTabs.add(tab.id))
 });
 
 chrome.webNavigation.onCompleted.addListener(
-    details => {exec(details.tabId);}
+    details => {
+        const id = details.tabId
+        if (ownedTabs.has(id)) {
+            exec(id);
+        }
+    }
 );
 
 function exec(id) {
     state[id] = state[id] || 0;
 
-    switch (state[id]) {
+    switch (state[id]++) {
         case 0:
-            state[id]++;
             chrome.scripting.executeScript({
                 target : {tabId : id},
                 files : ["foreground.js"]
@@ -19,7 +23,6 @@ function exec(id) {
             break;
     
         case 1:
-            state[id]++;
             chrome.scripting.executeScript({
                 target : {tabId : id},
                 files : ["alert.js"]
@@ -29,3 +32,4 @@ function exec(id) {
 }
 
 let state = {};
+let ownedTabs = new Set();
