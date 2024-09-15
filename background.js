@@ -1,13 +1,52 @@
-chrome.action.onClicked.addListener(handler);
+console.log(Date.now());
+chrome.action.onClicked.addListener(() => {
+    chrome.tabs.create({url: "https://wikipedia.org", active: false}, tab => ownedTabs.add(tab.id))
+});
 
-function handler(tab) {
-    chrome.tabs.create({url: "https://wikipedia.org"}, exec);
-}
+chrome.webNavigation.onCompleted.addListener(
+    details => {
+        const id = details.tabId
+        if (ownedTabs.has(id)) {
+            exec(id);
+        }
+    }
+);
 
-function exec(tab) {  
-    chrome.scripting.executeScript({
-        target : {tabId : tab.id, allFrames : true},
-        files : ["foreground.js"]
-    });
+function exec(id) {
+    state[id] = state[id] || 0;
+
+    switch (state[id]++) {
+        case 0:
+            chrome.scripting.executeScript({
+                target : {tabId : id},
+                files : ["foreground.js"]
+            });
+            break;
     
+        case 1:
+            chrome.scripting.executeScript({
+                target : {tabId : id},
+                files : ["alert.js"]
+            });
+            break;
+    }
+
+    chrome.storage.session.set({
+        state: state,
+        ownedTabs: [...ownedTabs]
+    });
 }
+
+let state;
+let ownedTabs;
+
+chrome.storage.session.get(["state", "ownedTabs"], data => {
+    const {'state': s, 'ownedTabs': t} = data;
+
+    state = s || {};
+    ownedTabs = new Set(t);
+
+    console.log(s);
+    console.log(t);
+});
+
